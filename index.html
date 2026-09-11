@@ -349,22 +349,44 @@
 
 <section id="aluno" class="section">
   <div class="container student-grid">
+
     <div>
       <span class="eyebrow">ÁREA DO ALUNO</span>
-      <h2>Seu progresso em um só lugar</h2>
-      <p>Protótipo visual da área reservada. Na versão conectada ao banco de dados, cada aluno terá acesso individual.</p>
-      <div class="progress-wrap">
-        <div class="progress-head"><span>Progresso do curso</span><strong>10%</strong></div>
-        <div class="progress-bar"><span style="width:10%"></span></div>
-      </div>
+      <h2>Acesse sua área de estudos</h2>
+      <p>
+        Entre com o e-mail e a senha cadastrados para acessar seus módulos,
+        acompanhar seu progresso e continuar sua formação.
+      </p>
     </div>
+
     <div class="student-panel">
-      <div class="student-item complete">Módulo 01 <span>Concluído ✓</span></div>
-      <div class="student-item complete">Módulo 02 <span>Concluído ✓</span></div>
-      <div class="student-item active">Módulo 03 <span>Continuar ▶</span></div>
-      <div class="student-item locked">Módulo 04 <span>Bloqueado 🔒</span></div>
-      <div class="student-item locked">Módulo 05 <span>Bloqueado 🔒</span></div>
+      <form id="loginForm">
+
+        <label for="loginEmail">E-mail</label>
+        <input
+          type="email"
+          id="loginEmail"
+          placeholder="Digite seu e-mail"
+          required
+        >
+
+        <label for="loginPassword">Senha</label>
+        <input
+          type="password"
+          id="loginPassword"
+          placeholder="Digite sua senha"
+          required
+        >
+
+        <button type="submit" class="btn btn-gold">
+          Entrar na Área do Aluno
+        </button>
+
+        <p id="loginMessage"></p>
+
+      </form>
     </div>
+
   </div>
 </section>
 
