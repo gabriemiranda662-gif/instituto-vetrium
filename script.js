@@ -169,3 +169,56 @@ if (validationForm) {
     }
   });
 }
+// ========================================
+// LOGIN DA ÁREA DO ALUNO
+// ========================================
+
+const loginForm = document.getElementById('loginForm');
+
+if (loginForm) {
+  loginForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const message = document.getElementById('loginMessage');
+
+    message.textContent = 'Entrando...';
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error_description || data.msg || 'E-mail ou senha inválidos.');
+      }
+
+      localStorage.setItem('vetrium_access_token', data.access_token);
+      localStorage.setItem('vetrium_refresh_token', data.refresh_token);
+      localStorage.setItem('vetrium_user_id', data.user.id);
+      localStorage.setItem('vetrium_user_email', data.user.email);
+
+      message.textContent = '✅ Login realizado com sucesso.';
+      message.style.color = '#183d2f';
+
+      setTimeout(() => {
+        window.location.href = 'aluno.html';
+      }, 700);
+
+    } catch (error) {
+      message.textContent = '❌ ' + error.message;
+      message.style.color = '#8b3a2e';
+    }
+  });
+}
