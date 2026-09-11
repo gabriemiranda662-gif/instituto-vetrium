@@ -1,5 +1,5 @@
 const SUPABASE_URL = 'https://dsmrdpwccbmezzpgwcef.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_...';
+const SUPABASE_KEY = 'sb_publishable_NprxXQvjDX-AEy64Q97hwg_AOL0ZOR4';
 
 // MENU MOBILE
 const menuBtn = document.querySelector('.menu-toggle');
