@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Aula | Instituto Vetrium</title>
+
   <link rel="stylesheet" href="styles.css">
 
   <style>
@@ -13,7 +15,7 @@
     }
 
     .lesson-page {
-      max-width: 900px;
+      max-width: 950px;
       margin: 0 auto;
       padding: 40px 20px 70px;
     }
@@ -23,30 +25,87 @@
     }
 
     .lesson-header h1 {
-      font-size: 46px;
-      margin-bottom: 10px;
+      font-size: clamp(34px, 6vw, 54px);
+      margin: 10px 0;
+      line-height: 1.05;
     }
 
     .lesson-card {
-      background: white;
+      background: #fff;
       padding: 30px;
-      border-radius: 16px;
+      border-radius: 18px;
       margin-bottom: 22px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      box-shadow: 0 10px 30px rgba(0,0,0,.06);
+      border: 1px solid #eee7d9;
     }
 
     .lesson-card h2 {
       margin-top: 0;
+      font-size: 30px;
     }
 
     .lesson-card p,
     .lesson-card li {
-      line-height: 1.7;
       font-size: 17px;
+      line-height: 1.75;
     }
 
-    .lesson-card ul {
-      padding-left: 22px;
+    .lesson-card li {
+      margin-bottom: 8px;
+    }
+
+    .highlight {
+      background: #f5ead0;
+      border-left: 5px solid #d5aa43;
+    }
+
+    .warning {
+      background: #fff7e8;
+      border-left: 5px solid #b57d1c;
+    }
+
+    .quiz-question {
+      padding: 18px 0;
+      border-bottom: 1px solid #eee7d9;
+    }
+
+    .quiz-question:last-child {
+      border-bottom: 0;
+    }
+
+    .quiz-question label {
+      display: block;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .quiz-btn,
+    .btn-lesson {
+      border: none;
+      padding: 13px 20px;
+      border-radius: 9px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 15px;
+    }
+
+    .quiz-btn,
+    .btn-complete {
+      background: #d5aa43;
+      color: #183d2f;
+    }
+
+    .btn-back {
+      background: #183d2f;
+      color: white;
+    }
+
+    .btn-next {
+      background: white;
+      color: #183d2f;
+      border: 1px solid #d8d0c1;
     }
 
     .lesson-actions {
@@ -56,35 +115,15 @@
       margin-top: 30px;
     }
 
-    .btn-lesson {
-      border: none;
-      padding: 13px 20px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .btn-back {
-      background: #183d2f;
-      color: white;
-    }
-
-    .btn-complete {
-      background: #d5aa43;
-      color: #183d2f;
-    }
-
-    .btn-next {
-      background: #ffffff;
-      color: #183d2f;
-      border: 1px solid #d8d0c1;
-    }
-
+    #quizResult,
     #lessonMessage {
       margin-top: 15px;
       font-weight: 700;
+    }
+
+    #completeLesson:disabled {
+      opacity: .45;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -93,23 +132,37 @@
 
 <main class="lesson-page">
 
-  <div class="lesson-header">
+  <header class="lesson-header">
     <p class="eyebrow">INSTITUTO VETRIUM</p>
     <p id="moduleNumber"></p>
     <h1 id="lessonTitle"></h1>
     <p>Curso de Auxiliar de Veterinário</p>
-  </div>
+  </header>
 
   <div id="lessonContent"></div>
 
+  <section class="lesson-card">
+    <h2>Questionário da aula</h2>
+
+    <p>
+      Responda às três questões abaixo. Você precisa acertar pelo menos
+      duas para liberar a conclusão do módulo.
+    </p>
+
+    <div id="quizContainer"></div>
+
+    <button class="quiz-btn" id="checkQuiz">
+      Corrigir questionário
+    </button>
+
+    <p id="quizResult"></p>
+  </section>
+
   <div class="lesson-actions">
+
     <a href="aluno.html" class="btn-lesson btn-back">
       ← Área do Aluno
     </a>
-
-    <button class="btn-lesson btn-complete" id="completeLesson">
-      Concluir aula
-    </button>
 
     <button class="btn-lesson btn-next" id="previousLesson">
       ← Aula anterior
@@ -118,6 +171,15 @@
     <button class="btn-lesson btn-next" id="nextLesson">
       Próxima aula →
     </button>
+
+    <button
+      class="btn-lesson btn-complete"
+      id="completeLesson"
+      disabled
+    >
+      Concluir esta aula
+    </button>
+
   </div>
 
   <p id="lessonMessage"></p>
@@ -125,454 +187,1062 @@
 </main>
 
 <script>
-  const accessToken = localStorage.getItem('vetrium_access_token');
+const accessToken = localStorage.getItem('vetrium_access_token');
 
-  if (!accessToken) {
-    window.location.href = 'index.html#aluno';
-  }
+if (!accessToken) {
+  window.location.href = 'index.html#aluno';
+}
 
-  const lessons = [
-    {
-      title: 'Introdução à Medicina Veterinária',
-      objective: 'Compreender o papel da Medicina Veterinária e a atuação do auxiliar na rotina profissional.',
-      topics: [
-        'Conceito de Medicina Veterinária',
-        'Principais áreas de atuação',
-        'Função do auxiliar de veterinário',
-        'Bem-estar animal',
-        'Responsabilidade profissional'
-      ]
-    },
-    {
-      title: 'Ética e postura profissional',
-      objective: 'Entender os princípios de ética, responsabilidade, respeito e comportamento profissional.',
-      topics: [
-        'Ética no ambiente veterinário',
-        'Sigilo profissional',
-        'Respeito ao tutor e à equipe',
-        'Limites de atuação do auxiliar',
-        'Postura e apresentação profissional'
-      ]
-    },
-    {
-      title: 'Rotina de uma clínica veterinária',
-      objective: 'Conhecer a organização básica e o funcionamento diário de uma clínica veterinária.',
-      topics: [
-        'Recepção e triagem',
-        'Consultórios',
-        'Internação',
-        'Centro cirúrgico',
-        'Organização de materiais'
-      ]
-    },
-    {
-      title: 'Organização e higienização',
-      objective: 'Aprender princípios básicos de limpeza, organização e biossegurança.',
-      topics: [
-        'Limpeza de superfícies',
-        'Desinfecção',
-        'Organização de materiais',
-        'Descarte de resíduos',
-        'Prevenção de contaminação'
-      ]
-    },
-    {
-      title: 'Contenção de cães e gatos',
-      objective: 'Conhecer técnicas básicas e seguras de contenção física.',
-      topics: [
-        'Avaliação do comportamento',
-        'Contenção de cães',
-        'Contenção de gatos',
-        'Redução de estresse',
-        'Segurança da equipe'
-      ]
-    },
-    {
-      title: 'Anatomia básica dos animais',
-      objective: 'Conhecer estruturas anatômicas importantes de cães e gatos.',
-      topics: [
-        'Sistema esquelético',
-        'Sistema muscular',
-        'Sistema digestório',
-        'Sistema respiratório',
-        'Sistema urinário'
-      ]
-    },
-    {
-      title: 'Fisiologia básica',
-      objective: 'Compreender funções essenciais do organismo animal.',
-      topics: [
-        'Circulação sanguínea',
-        'Respiração',
-        'Digestão',
-        'Termorregulação',
-        'Função renal'
-      ]
-    },
-    {
-      title: 'Sinais vitais',
-      objective: 'Aprender quais são os principais sinais vitais e sua importância clínica.',
-      topics: [
-        'Temperatura',
-        'Frequência cardíaca',
-        'Frequência respiratória',
-        'Mucosas',
-        'Tempo de preenchimento capilar'
-      ]
-    },
-    {
-      title: 'Triagem veterinária',
-      objective: 'Entender os primeiros passos da avaliação de um paciente.',
-      topics: [
-        'Queixa principal',
-        'Estado geral',
-        'Sinais vitais',
-        'Prioridade de atendimento',
-        'Registro das informações'
-      ]
-    },
-    {
-      title: 'Prontuário e ficha clínica',
-      objective: 'Conhecer a importância do registro correto das informações do paciente.',
-      topics: [
-        'Identificação do paciente',
-        'Dados do tutor',
-        'Histórico clínico',
-        'Anotações de evolução',
-        'Organização documental'
-      ]
-    },
-    {
-      title: 'Farmacologia básica',
-      objective: 'Entender conceitos iniciais relacionados ao uso de medicamentos veterinários.',
-      topics: [
-        'Princípio ativo',
-        'Dose',
-        'Intervalo',
-        'Via de administração',
-        'Segurança medicamentosa'
-      ]
-    },
-    {
-      title: 'Vias de administração',
-      objective: 'Conhecer as principais vias de administração utilizadas na rotina veterinária.',
-      topics: [
-        'Via oral',
-        'Via subcutânea',
-        'Via intramuscular',
-        'Via intravenosa',
-        'Via tópica'
-      ]
-    },
-    {
-      title: 'Cálculo e preparo de medicações',
-      objective: 'Compreender princípios básicos de cálculo e preparo seguro de medicamentos.',
-      topics: [
-        'Concentração',
-        'Volume',
-        'Dose prescrita',
-        'Diluição',
-        'Conferência antes da administração'
-      ]
-    },
-    {
-      title: 'Coleta de sangue',
-      objective: 'Conhecer materiais, cuidados e etapas relacionadas à coleta sanguínea.',
-      topics: [
-        'Materiais necessários',
-        'Principais vasos',
-        'Contenção',
-        'Identificação das amostras',
-        'Armazenamento'
-      ]
-    },
-    {
-      title: 'Exames laboratoriais',
-      objective: 'Compreender a finalidade dos principais exames laboratoriais.',
-      topics: [
-        'Hemograma',
-        'Bioquímico',
-        'Urinálise',
-        'Exames parasitológicos',
-        'Cuidados com amostras'
-      ]
-    },
-    {
-      title: 'Curativos e feridas',
-      objective: 'Conhecer os cuidados básicos relacionados à limpeza e proteção de feridas.',
-      topics: [
-        'Avaliação inicial',
-        'Higienização',
-        'Materiais de curativo',
-        'Proteção da área',
-        'Observação da evolução'
-      ]
-    },
-    {
-      title: 'Primeiros socorros',
-      objective: 'Conhecer medidas iniciais de suporte até o atendimento do médico-veterinário.',
-      topics: [
-        'Avaliação rápida',
-        'Controle de hemorragias',
-        'Traumas',
-        'Queimaduras',
-        'Transporte seguro'
-      ]
-    },
-    {
-      title: 'Emergência veterinária',
-      objective: 'Identificar situações que exigem atendimento imediato.',
-      topics: [
-        'Dificuldade respiratória',
-        'Convulsões',
-        'Choque',
-        'Traumas graves',
-        'Alteração de consciência'
-      ]
-    },
-    {
-      title: 'Internação veterinária',
-      objective: 'Conhecer a rotina básica do setor de internação.',
-      topics: [
-        'Organização do leito',
-        'Monitoramento',
-        'Alimentação',
-        'Higiene',
-        'Registro da evolução'
-      ]
-    },
-    {
-      title: 'Fluidoterapia',
-      objective: 'Entender os conceitos básicos relacionados à administração de fluidos.',
-      topics: [
-        'Finalidade da fluidoterapia',
-        'Tipos de soluções',
-        'Acesso venoso',
-        'Monitoramento',
-        'Cuidados com equipo e cateter'
-      ]
-    },
-    {
-      title: 'Nutrição de cães e gatos',
-      objective: 'Conhecer princípios básicos de alimentação e nutrição de pequenos animais.',
-      topics: [
-        'Necessidades nutricionais',
-        'Rações comerciais',
-        'Alimentação natural',
-        'Água',
-        'Condição corporal'
-      ]
-    },
-    {
-      title: 'Vacinação e prevenção',
-      objective: 'Entender a importância da prevenção de doenças.',
-      topics: [
-        'Vacinas',
-        'Protocolos preventivos',
-        'Vermifugação',
-        'Controle de ectoparasitas',
-        'Orientação ao tutor'
-      ]
-    },
-    {
-      title: 'Doenças infectocontagiosas',
-      objective: 'Conhecer conceitos básicos de doenças transmissíveis.',
-      topics: [
-        'Formas de transmissão',
-        'Isolamento',
-        'Higiene',
-        'Uso de EPIs',
-        'Prevenção'
-      ]
-    },
-    {
-      title: 'Parasitologia básica',
-      objective: 'Conhecer os principais parasitas encontrados na rotina veterinária.',
-      topics: [
-        'Pulgas',
-        'Carrapatos',
-        'Vermes intestinais',
-        'Protozoários',
-        'Prevenção'
-      ]
-    },
-    {
-      title: 'Dermatologia veterinária',
-      objective: 'Conhecer alterações dermatológicas comuns em cães e gatos.',
-      topics: [
-        'Coceira',
-        'Queda de pelos',
-        'Feridas',
-        'Ectoparasitas',
-        'Cuidados com a pele'
-      ]
-    },
-    {
-      title: 'Cuidados com pacientes cirúrgicos',
-      objective: 'Entender os cuidados antes e após procedimentos cirúrgicos.',
-      topics: [
-        'Jejum',
-        'Preparação do paciente',
-        'Monitoramento pós-operatório',
-        'Curativos',
-        'Orientações ao tutor'
-      ]
-    },
-    {
-      title: 'Centro cirúrgico',
-      objective: 'Conhecer a organização e rotina de um centro cirúrgico.',
-      topics: [
-        'Paramentação',
-        'Esterilização',
-        'Instrumentais',
-        'Mesa cirúrgica',
-        'Controle de contaminação'
-      ]
-    },
-    {
-      title: 'Anestesia veterinária',
-      objective: 'Conhecer conceitos básicos relacionados à anestesia.',
-      topics: [
-        'Avaliação pré-anestésica',
-        'Monitoramento',
-        'Equipamentos',
-        'Recuperação anestésica',
-        'Segurança'
-      ]
-    },
-    {
-      title: 'Atendimento ao tutor',
-      objective: 'Aprender princípios de comunicação e acolhimento no atendimento.',
-      topics: [
-        'Comunicação clara',
-        'Empatia',
-        'Organização das informações',
-        'Respeito',
-        'Postura profissional'
-      ]
-    },
-    {
-      title: 'Avaliação final do curso',
-      objective: 'Revisar os principais conhecimentos desenvolvidos durante a formação.',
-      topics: [
-        'Revisão geral',
-        'Rotina clínica',
-        'Biossegurança',
-        'Atendimento',
-        'Responsabilidade profissional'
-      ]
-    }
-  ];
+const lessons = [
 
-  const params = new URLSearchParams(window.location.search);
-  let moduleNumber = parseInt(params.get('modulo')) || 1;
+{
+  title: 'Introdução à Medicina Veterinária',
+  objective: 'Compreender o papel da Medicina Veterinária e a importância do auxiliar na rotina profissional.',
+  intro: `
+    A Medicina Veterinária atua na promoção da saúde e do bem-estar animal,
+    na prevenção de doenças, no diagnóstico, no tratamento e também em
+    importantes áreas relacionadas à saúde pública.
+  `,
+  topics: [
+    'Conceito e importância da Medicina Veterinária.',
+    'Principais áreas de atuação do médico-veterinário.',
+    'Estrutura básica de clínicas e hospitais veterinários.',
+    'Papel do auxiliar dentro da equipe.',
+    'Importância do bem-estar e do manejo adequado dos animais.'
+  ],
+  practice: `
+    Na rotina clínica, o auxiliar pode colaborar na organização do ambiente,
+    preparação de materiais, contenção orientada dos pacientes, higienização,
+    apoio à internação e registro de informações, sempre respeitando suas
+    atribuições profissionais.
+  `,
+  care: `
+    O auxiliar não substitui o médico-veterinário e não deve realizar
+    diagnóstico, prescrição ou procedimentos privativos do profissional.
+  `,
+  quiz: [
+    ['Qual é uma função adequada do auxiliar?', ['Prescrever medicamentos','Dar suporte à rotina clínica','Realizar diagnóstico'], 1],
+    ['Quem é responsável pelo diagnóstico clínico?', ['Médico-veterinário','Auxiliar','Tutor'], 0],
+    ['O bem-estar animal é importante?', ['Não','Somente em cirurgias','Sim'], 2]
+  ]
+},
 
-  if (moduleNumber < 1) moduleNumber = 1;
-  if (moduleNumber > lessons.length) moduleNumber = lessons.length;
+{
+  title: 'Ética e postura profissional',
+  objective: 'Compreender princípios de ética, responsabilidade e comportamento profissional.',
+  intro: `
+    A postura profissional influencia diretamente a confiança do tutor,
+    o funcionamento da equipe e a qualidade do atendimento ao paciente.
+  `,
+  topics: [
+    'Respeito aos animais, tutores e colegas.',
+    'Sigilo das informações dos pacientes.',
+    'Pontualidade e responsabilidade.',
+    'Comunicação profissional.',
+    'Limites de atuação do auxiliar.'
+  ],
+  practice: `
+    Informações sobre diagnóstico, tratamento e dados pessoais dos tutores
+    devem ser tratadas com discrição. O auxiliar deve encaminhar dúvidas
+    clínicas ao médico-veterinário responsável.
+  `,
+  care: `
+    Fotografias, prontuários e informações dos pacientes não devem ser
+    divulgados sem autorização.
+  `,
+  quiz: [
+    ['O auxiliar deve respeitar o sigilo?', ['Sim','Não','Somente às vezes'], 0],
+    ['Dúvidas sobre diagnóstico devem ser encaminhadas a quem?', ['Outro tutor','Médico-veterinário','Recepcionista'], 1],
+    ['Uma boa postura inclui:', ['Responsabilidade','Atrasos frequentes','Divulgação de prontuários'], 0]
+  ]
+},
 
-  const lesson = lessons[moduleNumber - 1];
+{
+  title: 'Rotina de uma clínica veterinária',
+  objective: 'Conhecer o funcionamento dos principais setores de uma clínica veterinária.',
+  intro: `
+    Uma clínica veterinária depende da organização entre recepção,
+    consultórios, internação, farmácia, diagnóstico e áreas de procedimentos.
+  `,
+  topics: [
+    'Recepção e cadastro.',
+    'Triagem inicial.',
+    'Consultório veterinário.',
+    'Internação.',
+    'Organização de materiais e estoque.'
+  ],
+  practice: `
+    Antes de iniciar o atendimento, é importante conferir identificação
+    do paciente, nome do tutor, motivo da consulta e manter o ambiente preparado.
+  `,
+  care: `
+    Organização inadequada pode provocar atrasos, falhas de identificação
+    e riscos ao paciente.
+  `,
+  quiz: [
+    ['A identificação do paciente é importante?', ['Sim','Não','Somente na cirurgia'], 0],
+    ['Onde ocorre normalmente a avaliação clínica?', ['Consultório','Estacionamento','Estoque'], 0],
+    ['A organização do estoque ajuda a:', ['Evitar falhas','Aumentar desorganização','Dispensar registros'], 0]
+  ]
+},
 
-  document.getElementById('moduleNumber').textContent =
-    `MÓDULO ${String(moduleNumber).padStart(2, '0')}`;
+{
+  title: 'Organização e higienização',
+  objective: 'Conhecer princípios básicos de limpeza, desinfecção e biossegurança.',
+  intro: `
+    A higienização adequada diminui a transmissão de agentes infecciosos
+    e ajuda a manter pacientes, profissionais e tutores protegidos.
+  `,
+  topics: [
+    'Limpeza antes da desinfecção.',
+    'Produtos adequados para cada superfície.',
+    'Uso de equipamentos de proteção.',
+    'Descarte correto de resíduos.',
+    'Separação de áreas limpas e contaminadas.'
+  ],
+  practice: `
+    Bancadas, mesas e equipamentos devem seguir protocolos definidos pela
+    clínica, especialmente após atendimento de pacientes com suspeita infecciosa.
+  `,
+  care: `
+    Nunca misture produtos químicos sem orientação e siga sempre as instruções
+    de diluição e segurança fornecidas pelo fabricante e pela clínica.
+  `,
+  quiz: [
+    ['A limpeza deve ocorrer antes da desinfecção?', ['Sim','Não','Nunca'], 0],
+    ['EPIs ajudam na biossegurança?', ['Sim','Não','Somente fora da clínica'], 0],
+    ['Resíduos devem ser:', ['Descartados corretamente','Misturados','Deixados no chão'], 0]
+  ]
+},
 
-  document.getElementById('lessonTitle').textContent = lesson.title;
+{
+  title: 'Contenção de cães e gatos',
+  objective: 'Conhecer princípios de contenção segura e redução do estresse.',
+  intro: `
+    A contenção deve proteger o paciente e a equipe, utilizando apenas
+    a força necessária e respeitando o comportamento de cada animal.
+  `,
+  topics: [
+    'Avaliação comportamental antes do contato.',
+    'Abordagem calma.',
+    'Contenção física segura.',
+    'Uso adequado de equipamentos.',
+    'Redução de medo e estresse.'
+  ],
+  practice: `
+    Animais assustados ou com dor podem reagir de maneira imprevisível.
+    Observar postura, vocalização e comportamento antes da aproximação é essencial.
+  `,
+  care: `
+    Contenção excessiva pode aumentar o estresse e provocar lesões.
+    Casos difíceis devem ser comunicados ao médico-veterinário.
+  `,
+  quiz: [
+    ['Antes da contenção devemos observar o comportamento?', ['Sim','Não','Nunca'], 0],
+    ['A contenção deve usar:', ['Força excessiva','A menor força necessária','Nenhum cuidado'], 1],
+    ['Dor pode alterar o comportamento?', ['Sim','Não','Somente em gatos'], 0]
+  ]
+},
 
-  document.title =
-    `Aula ${String(moduleNumber).padStart(2, '0')} | Instituto Vetrium`;
+{
+  title: 'Anatomia básica dos animais',
+  objective: 'Reconhecer os principais sistemas e regiões anatômicas.',
+  intro: `
+    O conhecimento anatômico facilita a comunicação entre os profissionais
+    e a compreensão dos procedimentos realizados na rotina veterinária.
+  `,
+  topics: [
+    'Sistema esquelético.',
+    'Sistema muscular.',
+    'Sistema digestório.',
+    'Sistema respiratório.',
+    'Sistema cardiovascular e urinário.'
+  ],
+  practice: `
+    Termos anatômicos são utilizados para registrar localização de lesões,
+    posicionar pacientes e descrever alterações clínicas.
+  `,
+  care: `
+    O conhecimento básico de anatomia não autoriza o auxiliar a realizar
+    procedimentos invasivos sem supervisão e treinamento adequado.
+  `,
+  quiz: [
+    ['O coração pertence a qual sistema?', ['Cardiovascular','Digestório','Tegumentar'], 0],
+    ['Os ossos fazem parte do sistema:', ['Esquelético','Respiratório','Digestório'], 0],
+    ['A anatomia ajuda na comunicação clínica?', ['Sim','Não','Somente em aves'], 0]
+  ]
+},
 
-  const content = document.getElementById('lessonContent');
+{
+  title: 'Fisiologia básica',
+  objective: 'Compreender funções essenciais do organismo animal.',
+  intro: `
+    A fisiologia estuda como os órgãos e sistemas funcionam e trabalham
+    juntos para manter o equilíbrio do organismo.
+  `,
+  topics: [
+    'Respiração.',
+    'Circulação.',
+    'Digestão.',
+    'Função renal.',
+    'Controle da temperatura corporal.'
+  ],
+  practice: `
+    Alterações fisiológicas podem se manifestar através de mudanças na
+    respiração, frequência cardíaca, temperatura, ingestão de água ou eliminação.
+  `,
+  care: `
+    Alterações importantes devem ser registradas e comunicadas ao
+    médico-veterinário responsável.
+  `,
+  quiz: [
+    ['A fisiologia estuda:', ['Funcionamento do organismo','Somente ossos','Somente medicamentos'], 0],
+    ['Os rins participam da função:', ['Urinária','Auditiva','Visual'], 0],
+    ['Alterações devem ser comunicadas?', ['Sim','Não','Somente no dia seguinte'], 0]
+  ]
+},
 
-  content.innerHTML = `
-    <section class="lesson-card">
-      <h2>Objetivo da aula</h2>
-      <p>${lesson.objective}</p>
-    </section>
+{
+  title: 'Sinais vitais',
+  objective: 'Conhecer os principais parâmetros utilizados na avaliação do paciente.',
+  intro: `
+    Os sinais vitais ajudam a equipe a acompanhar o estado geral do animal
+    e identificar alterações que exigem atenção.
+  `,
+  topics: [
+    'Temperatura corporal.',
+    'Frequência cardíaca.',
+    'Frequência respiratória.',
+    'Coloração das mucosas.',
+    'Tempo de preenchimento capilar.'
+  ],
+  practice: `
+    Os valores devem ser registrados corretamente e interpretados pelo
+    médico-veterinário considerando espécie, idade e condição clínica.
+  `,
+  care: `
+    Nunca avalie um parâmetro isoladamente para concluir um diagnóstico.
+  `,
+  quiz: [
+    ['Temperatura é um sinal vital?', ['Sim','Não','Somente em cães'], 0],
+    ['A frequência respiratória avalia:', ['Respirações','Batimentos apenas','Peso'], 0],
+    ['Um parâmetro isolado permite diagnóstico definitivo?', ['Não','Sim','Sempre'], 0]
+  ]
+},
 
-    <section class="lesson-card">
-      <h2>Conteúdo da aula</h2>
-      <p>
-        Nesta aula, você irá estudar os principais conceitos relacionados
-        ao tema <strong>${lesson.title}</strong>.
-      </p>
+{
+  title: 'Triagem veterinária',
+  objective: 'Compreender a organização inicial do atendimento.',
+  intro: `
+    A triagem reúne informações importantes para identificar pacientes
+    que precisam de atendimento prioritário.
+  `,
+  topics: [
+    'Identificação do paciente.',
+    'Queixa principal.',
+    'Estado geral.',
+    'Sinais vitais.',
+    'Reconhecimento de urgências.'
+  ],
+  practice: `
+    Dificuldade respiratória, hemorragias importantes, convulsões e alterações
+    graves de consciência exigem comunicação imediata à equipe veterinária.
+  `,
+  care: `
+    Triagem não é diagnóstico. Sua função é organizar informações e prioridades.
+  `,
+  quiz: [
+    ['Triagem é diagnóstico?', ['Não','Sim','Sempre'], 0],
+    ['Dificuldade respiratória merece atenção rápida?', ['Sim','Não','Pode esperar sempre'], 0],
+    ['A queixa principal deve ser registrada?', ['Sim','Não','Nunca'], 0]
+  ]
+},
 
-      <ul>
-        ${lesson.topics.map(topic => `<li>${topic}</li>`).join('')}
-      </ul>
-    </section>
+{
+  title: 'Prontuário e ficha clínica',
+  objective: 'Entender a importância dos registros clínicos corretos.',
+  intro: `
+    O prontuário reúne dados essenciais do paciente e permite acompanhar
+    atendimentos, tratamentos e evolução.
+  `,
+  topics: [
+    'Identificação do paciente.',
+    'Dados do tutor.',
+    'Histórico.',
+    'Procedimentos realizados.',
+    'Registro de evolução.'
+  ],
+  practice: `
+    Registros devem ser claros, organizados, cronológicos e realizados
+    conforme a rotina estabelecida pela clínica.
+  `,
+  care: `
+    Nunca altere informações de maneira indevida ou compartilhe prontuários
+    sem autorização.
+  `,
+  quiz: [
+    ['O prontuário deve ser organizado?', ['Sim','Não','Opcional'], 0],
+    ['Dados clínicos são confidenciais?', ['Sim','Não','Sempre públicos'], 0],
+    ['A evolução deve ser registrada?', ['Sim','Não','Somente na alta'], 0]
+  ]
+},
 
-    <section class="lesson-card">
-      <h2>Importância na rotina veterinária</h2>
-      <p>
-        O conhecimento deste conteúdo é importante para que o auxiliar
-        compreenda melhor a rotina de atendimento, trabalhe com segurança,
-        organização e responsabilidade e consiga oferecer suporte adequado
-        à equipe veterinária.
-      </p>
-    </section>
+{
+  title: 'Farmacologia básica',
+  objective: 'Conhecer conceitos básicos relacionados aos medicamentos.',
+  intro: `
+    Medicamentos possuem indicações, concentrações, formas farmacêuticas
+    e vias de administração diferentes.
+  `,
+  topics: [
+    'Princípio ativo.',
+    'Concentração.',
+    'Dose prescrita.',
+    'Intervalo entre administrações.',
+    'Armazenamento adequado.'
+  ],
+  practice: `
+    Antes de qualquer administração devem ser conferidos paciente,
+    medicamento, concentração, via e orientação do médico-veterinário.
+  `,
+  care: `
+    O auxiliar não deve prescrever ou modificar doses por conta própria.
+  `,
+  quiz: [
+    ['O auxiliar pode alterar a dose prescrita?', ['Não','Sim','Sempre'], 0],
+    ['A concentração deve ser conferida?', ['Sim','Não','Nunca'], 0],
+    ['Medicamentos precisam de armazenamento adequado?', ['Sim','Não','Somente vacinas'], 0]
+  ]
+},
 
-    <section class="lesson-card">
-      <h2>Resumo</h2>
-      <p>
-        Revise os pontos apresentados nesta aula antes de marcar o módulo
-        como concluído. Em caso de dúvida, retorne ao conteúdo e releia
-        os tópicos principais.
-      </p>
-    </section>
+{
+  title: 'Vias de administração',
+  objective: 'Conhecer as principais vias utilizadas na rotina veterinária.',
+  intro: `
+    Cada medicamento possui uma via de administração adequada, definida
+    conforme sua formulação e prescrição veterinária.
+  `,
+  topics: [
+    'Via oral.',
+    'Via tópica.',
+    'Via subcutânea.',
+    'Via intramuscular.',
+    'Via intravenosa.'
+  ],
+  practice: `
+    A via prescrita deve ser conferida antes do preparo e administração.
+    Técnicas invasivas exigem treinamento e supervisão adequada.
+  `,
+  care: `
+    Administrar medicamento pela via errada pode provocar complicações graves.
+  `,
+  quiz: [
+    ['A via deve ser conferida?', ['Sim','Não','Somente depois'], 0],
+    ['Via oral significa administração:', ['Pela boca','Na pele','Na veia'], 0],
+    ['A via errada pode causar problemas?', ['Sim','Não','Nunca'], 0]
+  ]
+},
+
+{
+  title: 'Cálculo e preparo de medicações',
+  objective: 'Compreender a importância da conferência no preparo de medicamentos.',
+  intro: `
+    O preparo seguro depende da leitura correta da prescrição e da
+    conferência da apresentação e concentração do medicamento.
+  `,
+  topics: [
+    'Dose prescrita.',
+    'Concentração do produto.',
+    'Volume a ser preparado.',
+    'Diluições quando prescritas.',
+    'Dupla conferência.'
+  ],
+  practice: `
+    Em caso de dúvida sobre cálculo, concentração ou prescrição,
+    interrompa o preparo e confirme com o médico-veterinário.
+  `,
+  care: `
+    Nunca estime doses ou faça alterações sem orientação profissional.
+  `,
+  quiz: [
+    ['Dúvidas de cálculo devem ser confirmadas?', ['Sim','Não','Ignoradas'], 0],
+    ['A concentração do produto importa?', ['Sim','Não','Nunca'], 0],
+    ['É seguro estimar uma dose?', ['Não','Sim','Sempre'], 0]
+  ]
+},
+
+{
+  title: 'Coleta de sangue',
+  objective: 'Conhecer os cuidados relacionados à preparação e manejo das amostras.',
+  intro: `
+    A qualidade de uma amostra influencia diretamente a confiabilidade
+    dos resultados laboratoriais.
+  `,
+  topics: [
+    'Identificação do paciente.',
+    'Preparação dos materiais.',
+    'Tubos de coleta.',
+    'Identificação das amostras.',
+    'Armazenamento e envio.'
+  ],
+  practice: `
+    Após a coleta, a amostra deve ser identificada imediatamente para
+    reduzir o risco de trocas entre pacientes.
+  `,
+  care: `
+    A coleta deve ser executada por profissional habilitado ou sob
+    orientação conforme as regras e rotinas aplicáveis.
+  `,
+  quiz: [
+    ['A amostra deve ser identificada?', ['Sim','Não','Somente depois do exame'], 0],
+    ['A qualidade da amostra afeta o resultado?', ['Sim','Não','Nunca'], 0],
+    ['Trocar amostras é um risco?', ['Sim','Não','Não importa'], 0]
+  ]
+},
+
+{
+  title: 'Exames laboratoriais',
+  objective: 'Conhecer os exames mais encontrados na rotina clínica.',
+  intro: `
+    Exames complementares ajudam o médico-veterinário a investigar
+    alterações e acompanhar a evolução dos pacientes.
+  `,
+  topics: [
+    'Hemograma.',
+    'Bioquímica sérica.',
+    'Urinálise.',
+    'Exames parasitológicos.',
+    'Identificação e conservação das amostras.'
+  ],
+  practice: `
+    O auxiliar pode contribuir na organização, identificação e encaminhamento
+    adequado das amostras conforme protocolo da clínica.
+  `,
+  care: `
+    Resultados laboratoriais devem ser interpretados pelo médico-veterinário.
+  `,
+  quiz: [
+    ['Quem interpreta o exame clinicamente?', ['Médico-veterinário','Qualquer pessoa','Tutor'], 0],
+    ['Urinálise avalia uma amostra de:', ['Urina','Pelo','Saliva apenas'], 0],
+    ['Identificação correta é importante?', ['Sim','Não','Nunca'], 0]
+  ]
+},
+
+{
+  title: 'Curativos e feridas',
+  objective: 'Conhecer princípios gerais de cuidado e observação de feridas.',
+  intro: `
+    Feridas variam quanto à causa, profundidade, contaminação e estágio
+    de cicatrização, por isso precisam de avaliação adequada.
+  `,
+  topics: [
+    'Avaliação inicial.',
+    'Limpeza orientada.',
+    'Materiais de curativo.',
+    'Proteção da área.',
+    'Observação da evolução.'
+  ],
+  practice: `
+    Mudanças de odor, secreção, sangramento, edema ou dor devem ser
+    comunicadas à equipe veterinária.
+  `,
+  care: `
+    Produtos e técnicas de curativo devem seguir orientação veterinária.
+  `,
+  quiz: [
+    ['Alterações na ferida devem ser comunicadas?', ['Sim','Não','Nunca'], 0],
+    ['Todo produto pode ser aplicado em uma ferida?', ['Não','Sim','Sempre'], 0],
+    ['Feridas podem ter diferentes estágios?', ['Sim','Não','Nunca'], 0]
+  ]
+},
+
+{
+  title: 'Primeiros socorros',
+  objective: 'Reconhecer medidas iniciais de suporte até avaliação veterinária.',
+  intro: `
+    Primeiros socorros têm como objetivo reduzir riscos e manter o paciente
+    estável até que o médico-veterinário possa assumir o atendimento.
+  `,
+  topics: [
+    'Avaliação rápida.',
+    'Segurança do ambiente.',
+    'Controle inicial de hemorragias.',
+    'Traumas.',
+    'Transporte seguro.'
+  ],
+  practice: `
+    A prioridade é proteger o paciente e a equipe e comunicar rapidamente
+    situações graves ao médico-veterinário.
+  `,
+  care: `
+    Não improvise medicamentos ou procedimentos invasivos.
+  `,
+  quiz: [
+    ['Primeiros socorros substituem o veterinário?', ['Não','Sim','Sempre'], 0],
+    ['Segurança do ambiente importa?', ['Sim','Não','Nunca'], 0],
+    ['Hemorragia importante exige atenção rápida?', ['Sim','Não','Pode esperar sempre'], 0]
+  ]
+},
+
+{
+  title: 'Emergência veterinária',
+  objective: 'Identificar sinais que podem representar risco imediato.',
+  intro: `
+    Emergências exigem reconhecimento rápido, organização e comunicação
+    eficiente entre os membros da equipe.
+  `,
+  topics: [
+    'Dificuldade respiratória.',
+    'Convulsões.',
+    'Traumas graves.',
+    'Hemorragias.',
+    'Alterações importantes de consciência.'
+  ],
+  practice: `
+    Pacientes críticos devem ser encaminhados rapidamente para avaliação
+    do médico-veterinário.
+  `,
+  care: `
+    Evite atrasos causados por procedimentos administrativos quando houver
+    risco imediato à vida.
+  `,
+  quiz: [
+    ['Dificuldade respiratória pode ser emergência?', ['Sim','Não','Nunca'], 0],
+    ['Convulsão exige atenção?', ['Sim','Não','Somente em gatos'], 0],
+    ['Um paciente crítico deve aguardar sem comunicação?', ['Não','Sim','Sempre'], 0]
+  ]
+},
+
+{
+  title: 'Internação veterinária',
+  objective: 'Compreender os principais cuidados da rotina de internação.',
+  intro: `
+    A internação permite acompanhamento frequente do paciente e execução
+    do plano estabelecido pelo médico-veterinário.
+  `,
+  topics: [
+    'Identificação do leito.',
+    'Higiene.',
+    'Alimentação e água.',
+    'Monitoramento.',
+    'Registro das alterações.'
+  ],
+  practice: `
+    Toda observação relevante deve ser registrada, como alimentação,
+    eliminações, comportamento e alterações clínicas.
+  `,
+  care: `
+    Mudanças súbitas no estado do paciente devem ser comunicadas imediatamente.
+  `,
+  quiz: [
+    ['Alterações devem ser registradas?', ['Sim','Não','Nunca'], 0],
+    ['Higiene faz parte da internação?', ['Sim','Não','Somente na alta'], 0],
+    ['Mudanças súbitas devem ser comunicadas?', ['Sim','Não','No dia seguinte'], 0]
+  ]
+},
+
+{
+  title: 'Fluidoterapia',
+  objective: 'Conhecer conceitos gerais e cuidados de pacientes em fluidoterapia.',
+  intro: `
+    A fluidoterapia é utilizada em diversas situações clínicas e deve
+    seguir planejamento e prescrição do médico-veterinário.
+  `,
+  topics: [
+    'Objetivos da fluidoterapia.',
+    'Soluções utilizadas.',
+    'Acesso venoso.',
+    'Equipos e bombas.',
+    'Monitoramento do paciente.'
+  ],
+  practice: `
+    O local do acesso deve ser observado quanto a edema, desconforto,
+    vazamentos ou outras alterações.
+  `,
+  care: `
+    Volume e velocidade não devem ser alterados sem orientação veterinária.
+  `,
+  quiz: [
+    ['A velocidade pode ser alterada livremente?', ['Não','Sim','Sempre'], 0],
+    ['O acesso deve ser monitorado?', ['Sim','Não','Nunca'], 0],
+    ['Fluidoterapia deve seguir prescrição?', ['Sim','Não','Somente em gatos'], 0]
+  ]
+},
+
+{
+  title: 'Nutrição de cães e gatos',
+  objective: 'Conhecer princípios básicos de alimentação adequada.',
+  intro: `
+    A nutrição influencia crescimento, manutenção corporal, recuperação
+    e qualidade de vida dos animais.
+  `,
+  topics: [
+    'Necessidades nutricionais.',
+    'Água.',
+    'Alimentos comerciais.',
+    'Alimentação natural formulada.',
+    'Condição corporal.'
+  ],
+  practice: `
+    Dietas devem considerar espécie, fase de vida, condição corporal
+    e necessidades individuais.
+  `,
+  care: `
+    Dietas terapêuticas ou caseiras devem ser orientadas por profissional
+    capacitado e não improvisadas.
+  `,
+  quiz: [
+    ['A água é importante para a nutrição?', ['Sim','Não','Pouco'], 0],
+    ['A dieta deve considerar fase de vida?', ['Sim','Não','Nunca'], 0],
+    ['Dietas terapêuticas devem ter orientação?', ['Sim','Não','Dispensa avaliação'], 0]
+  ]
+},
+
+{
+  title: 'Vacinação e prevenção',
+  objective: 'Compreender a importância das medidas preventivas.',
+  intro: `
+    A prevenção reduz o risco de doenças e contribui para a saúde individual
+    e coletiva dos animais.
+  `,
+  topics: [
+    'Vacinação.',
+    'Controle de parasitas.',
+    'Vermifugação conforme orientação.',
+    'Higiene.',
+    'Acompanhamento veterinário.'
+  ],
+  practice: `
+    O histórico vacinal deve ser conferido e registrado corretamente.
+  `,
+  care: `
+    Protocolos vacinais devem ser definidos pelo médico-veterinário
+    considerando cada paciente.
+  `,
+  quiz: [
+    ['Vacinação é medida preventiva?', ['Sim','Não','Nunca'], 0],
+    ['O protocolo deve ser individualizado?', ['Sim','Não','É igual para todos'], 0],
+    ['O histórico deve ser registrado?', ['Sim','Não','Não importa'], 0]
+  ]
+},
+
+{
+  title: 'Doenças infectocontagiosas',
+  objective: 'Conhecer princípios de transmissão e prevenção.',
+  intro: `
+    Algumas doenças podem ser transmitidas entre animais e exigem
+    cuidados especiais para reduzir a disseminação.
+  `,
+  topics: [
+    'Formas de transmissão.',
+    'Isolamento.',
+    'Higienização.',
+    'Equipamentos de proteção.',
+    'Fluxo de pacientes.'
+  ],
+  practice: `
+    Pacientes suspeitos devem seguir o protocolo de isolamento determinado
+    pela clínica.
+  `,
+  care: `
+    Materiais utilizados em áreas contaminadas não devem circular
+    indiscriminadamente por áreas limpas.
+  `,
+  quiz: [
+    ['Isolamento ajuda no controle?', ['Sim','Não','Nunca'], 0],
+    ['EPIs podem ser necessários?', ['Sim','Não','Nunca'], 0],
+    ['Materiais contaminados devem circular livremente?', ['Não','Sim','Sempre'], 0]
+  ]
+},
+
+{
+  title: 'Parasitologia básica',
+  objective: 'Reconhecer parasitas comuns e princípios preventivos.',
+  intro: `
+    Parasitas podem causar alterações dermatológicas, digestivas,
+    hematológicas e transmitir outros agentes.
+  `,
+  topics: [
+    'Pulgas.',
+    'Carrapatos.',
+    'Vermes intestinais.',
+    'Protozoários.',
+    'Medidas preventivas.'
+  ],
+  practice: `
+    Informações sobre ambiente, contato com outros animais e histórico
+    preventivo ajudam na investigação veterinária.
+  `,
+  care: `
+    Antiparasitários devem ser utilizados conforme orientação adequada.
+  `,
+  quiz: [
+    ['Carrapato é um ectoparasita?', ['Sim','Não','É bactéria'], 0],
+    ['O ambiente influencia parasitoses?', ['Sim','Não','Nunca'], 0],
+    ['Medicamentos devem ter orientação?', ['Sim','Não','Qualquer dose serve'], 0]
+  ]
+},
+
+{
+  title: 'Dermatologia veterinária',
+  objective: 'Reconhecer sinais dermatológicos encontrados na rotina.',
+  intro: `
+    Problemas de pele são frequentes e podem ter inúmeras causas,
+    incluindo alergias, parasitas, infecções e doenças sistêmicas.
+  `,
+  topics: [
+    'Prurido.',
+    'Queda de pelos.',
+    'Vermelhidão.',
+    'Feridas e secreções.',
+    'Alterações de ouvido e pele.'
+  ],
+  practice: `
+    Registrar localização e aspecto das alterações ajuda o médico-veterinário
+    durante a avaliação.
+  `,
+  care: `
+    Não aplique produtos ou medicamentos sem orientação, pois eles podem
+    modificar lesões e dificultar a avaliação.
+  `,
+  quiz: [
+    ['Prurido significa coceira?', ['Sim','Não','Significa febre'], 0],
+    ['Alterações devem ser descritas?', ['Sim','Não','Nunca'], 0],
+    ['Produtos podem ser usados sem orientação?', ['Não','Sim','Sempre'], 0]
+  ]
+},
+
+{
+  title: 'Cuidados com pacientes cirúrgicos',
+  objective: 'Conhecer cuidados gerais antes e depois de cirurgias.',
+  intro: `
+    O período perioperatório exige identificação correta, preparação,
+    monitoramento e acompanhamento do paciente.
+  `,
+  topics: [
+    'Preparação pré-operatória.',
+    'Identificação.',
+    'Jejum conforme orientação.',
+    'Recuperação.',
+    'Cuidados com ferida cirúrgica.'
+  ],
+  practice: `
+    Durante a recuperação devem ser observados comportamento, conforto,
+    respiração, temperatura e orientações específicas da equipe.
+  `,
+  care: `
+    Alterações importantes no pós-operatório precisam ser comunicadas
+    imediatamente.
+  `,
+  quiz: [
+    ['Identificação é importante antes da cirurgia?', ['Sim','Não','Opcional'], 0],
+    ['O pós-operatório deve ser monitorado?', ['Sim','Não','Nunca'], 0],
+    ['Alterações devem ser comunicadas?', ['Sim','Não','Depois de vários dias'], 0]
+  ]
+},
+
+{
+  title: 'Centro cirúrgico',
+  objective: 'Conhecer organização, assepsia e fluxo básico do centro cirúrgico.',
+  intro: `
+    O centro cirúrgico exige controle rigoroso de limpeza, materiais,
+    circulação de pessoas e técnicas de prevenção de contaminação.
+  `,
+  topics: [
+    'Área limpa.',
+    'Paramentação.',
+    'Materiais esterilizados.',
+    'Instrumentais.',
+    'Organização da sala.'
+  ],
+  practice: `
+    Materiais devem ser conferidos antes do procedimento para reduzir
+    interrupções e preservar o fluxo cirúrgico.
+  `,
+  care: `
+    Materiais estéreis não devem entrar em contato com superfícies contaminadas.
+  `,
+  quiz: [
+    ['Material estéril deve ser protegido?', ['Sim','Não','Não importa'], 0],
+    ['Organização deve ocorrer antes da cirurgia?', ['Sim','Não','Somente depois'], 0],
+    ['Controle de contaminação é importante?', ['Sim','Não','Nunca'], 0]
+  ]
+},
+
+{
+  title: 'Anestesia veterinária',
+  objective: 'Conhecer conceitos básicos de preparação e monitoramento anestésico.',
+  intro: `
+    A anestesia permite a realização de diversos procedimentos e exige
+    avaliação, equipamentos adequados e monitoramento contínuo.
+  `,
+  topics: [
+    'Avaliação pré-anestésica.',
+    'Preparação de equipamentos.',
+    'Monitoramento.',
+    'Oxigenação.',
+    'Recuperação anestésica.'
+  ],
+  practice: `
+    Equipamentos e materiais devem ser conferidos antes do início do procedimento.
+  `,
+  care: `
+    Administração e decisão anestésica são responsabilidades de profissionais
+    habilitados. Alterações devem ser comunicadas imediatamente.
+  `,
+  quiz: [
+    ['Monitoramento é importante durante anestesia?', ['Sim','Não','Nunca'], 0],
+    ['Equipamentos devem ser conferidos antes?', ['Sim','Não','Depois'], 0],
+    ['Alterações devem ser comunicadas?', ['Sim','Não','Somente na alta'], 0]
+  ]
+},
+
+{
+  title: 'Atendimento ao tutor',
+  objective: 'Desenvolver comunicação respeitosa e organizada.',
+  intro: `
+    O tutor precisa receber atendimento acolhedor, claro e profissional,
+    principalmente em situações de preocupação com o animal.
+  `,
+  topics: [
+    'Escuta ativa.',
+    'Empatia.',
+    'Clareza.',
+    'Organização das informações.',
+    'Respeito.'
+  ],
+  practice: `
+    Quando o tutor fizer perguntas sobre diagnóstico ou tratamento,
+    encaminhe-as ao médico-veterinário responsável.
+  `,
+  care: `
+    Evite promessas de resultado ou interpretações clínicas fora das
+    atribuições do auxiliar.
+  `,
+  quiz: [
+    ['Empatia é importante?', ['Sim','Não','Nunca'], 0],
+    ['Perguntas de diagnóstico devem ir ao veterinário?', ['Sim','Não','Ao caixa'], 0],
+    ['O auxiliar deve prometer cura?', ['Não','Sim','Sempre'], 0]
+  ]
+},
+
+{
+  title: 'Avaliação final do curso',
+  objective: 'Revisar os principais conhecimentos abordados ao longo da formação.',
+  intro: `
+    Este módulo encerra a formação e reforça princípios essenciais para
+    atuação organizada, ética e responsável na rotina veterinária.
+  `,
+  topics: [
+    'Ética e limites profissionais.',
+    'Biossegurança.',
+    'Rotina clínica.',
+    'Cuidados com pacientes.',
+    'Comunicação e trabalho em equipe.'
+  ],
+  practice: `
+    O aprendizado profissional continua com treinamento, atualização,
+    prática supervisionada e respeito aos limites de atuação.
+  `,
+  care: `
+    Concluir o curso não substitui a graduação em Medicina Veterinária
+    nem autoriza atividades privativas do médico-veterinário.
+  `,
+  quiz: [
+    ['O auxiliar substitui o médico-veterinário?', ['Não','Sim','Sempre'], 0],
+    ['Biossegurança é importante?', ['Sim','Não','Somente em cirurgia'], 0],
+    ['Atualização profissional deve continuar?', ['Sim','Não','Nunca'], 0]
+  ]
+}
+
+];
+
+const params = new URLSearchParams(window.location.search);
+
+let moduleNumber = parseInt(params.get('modulo')) || 1;
+
+if (moduleNumber < 1) moduleNumber = 1;
+if (moduleNumber > lessons.length) moduleNumber = lessons.length;
+
+const lesson = lessons[moduleNumber - 1];
+
+document.getElementById('moduleNumber').textContent =
+  `MÓDULO ${String(moduleNumber).padStart(2, '0')}`;
+
+document.getElementById('lessonTitle').textContent = lesson.title;
+
+document.title =
+  `Aula ${String(moduleNumber).padStart(2, '0')} | Instituto Vetrium`;
+
+document.getElementById('lessonContent').innerHTML = `
+
+  <section class="lesson-card">
+    <h2>Objetivo da aula</h2>
+    <p>${lesson.objective}</p>
+  </section>
+
+  <section class="lesson-card">
+    <h2>Introdução</h2>
+    <p>${lesson.intro}</p>
+  </section>
+
+  <section class="lesson-card">
+    <h2>Conteúdo principal</h2>
+
+    <ul>
+      ${lesson.topics.map(item => `<li>${item}</li>`).join('')}
+    </ul>
+  </section>
+
+  <section class="lesson-card highlight">
+    <h2>Na prática</h2>
+    <p>${lesson.practice}</p>
+  </section>
+
+  <section class="lesson-card warning">
+    <h2>Cuidados importantes</h2>
+    <p>${lesson.care}</p>
+  </section>
+
+  <section class="lesson-card">
+    <h2>Resumo da aula</h2>
+
+    <p>
+      Neste módulo você estudou <strong>${lesson.title}</strong>.
+      Revise os principais pontos antes de realizar o questionário.
+      O objetivo é compreender como esse conhecimento se aplica à rotina
+      do auxiliar de veterinário de forma segura, ética e organizada.
+    </p>
+  </section>
+`;
+
+const quizContainer = document.getElementById('quizContainer');
+
+lesson.quiz.forEach((question, questionIndex) => {
+
+  const questionDiv = document.createElement('div');
+
+  questionDiv.className = 'quiz-question';
+
+  questionDiv.innerHTML = `
+    <strong>
+      ${questionIndex + 1}. ${question[0]}
+    </strong>
+
+    ${question[1].map((option, optionIndex) => `
+      <label>
+        <input
+          type="radio"
+          name="question${questionIndex}"
+          value="${optionIndex}"
+        >
+        ${option}
+      </label>
+    `).join('')}
   `;
 
-  document
-    .getElementById('completeLesson')
-    .addEventListener('click', function() {
+  quizContainer.appendChild(questionDiv);
+});
 
-      let completedModules =
-        JSON.parse(
-          localStorage.getItem('vetrium_completed_modules')
-        ) || [];
+let quizApproved = false;
 
-      if (!completedModules.includes(moduleNumber)) {
-        completedModules.push(moduleNumber);
-      }
+document.getElementById('checkQuiz').addEventListener('click', function() {
 
-      localStorage.setItem(
-        'vetrium_completed_modules',
-        JSON.stringify(completedModules)
+  let correct = 0;
+
+  lesson.quiz.forEach((question, questionIndex) => {
+
+    const selected =
+      document.querySelector(
+        `input[name="question${questionIndex}"]:checked`
       );
 
-      document.getElementById('lessonMessage').textContent =
-        `✅ Aula ${String(moduleNumber).padStart(2, '0')} concluída com sucesso.`;
+    if (selected && parseInt(selected.value) === question[2]) {
+      correct++;
+    }
+  });
 
-      setTimeout(function() {
-        window.location.href = 'aluno.html';
-      }, 800);
-    });
+  const result = document.getElementById('quizResult');
 
-  document
-    .getElementById('previousLesson')
-    .addEventListener('click', function() {
+  if (correct >= 2) {
 
-      if (moduleNumber > 1) {
-        window.location.href =
-          `aula.html?modulo=${moduleNumber - 1}`;
-      }
-    });
+    quizApproved = true;
 
-  document
-    .getElementById('nextLesson')
-    .addEventListener('click', function() {
+    result.textContent =
+      `✅ Você acertou ${correct} de 3 questões. Aula liberada para conclusão.`;
 
-      if (moduleNumber < lessons.length) {
-        window.location.href =
-          `aula.html?modulo=${moduleNumber + 1}`;
-      }
-    });
+    result.style.color = '#183d2f';
 
-  if (moduleNumber === 1) {
-    document.getElementById('previousLesson').style.display = 'none';
+    document.getElementById('completeLesson').disabled = false;
+
+  } else {
+
+    quizApproved = false;
+
+    result.textContent =
+      `❌ Você acertou ${correct} de 3. Revise a aula e tente novamente.`;
+
+    result.style.color = '#8b3a2e';
+
+    document.getElementById('completeLesson').disabled = true;
+  }
+});
+
+document.getElementById('completeLesson')
+.addEventListener('click', function() {
+
+  if (!quizApproved) {
+    return;
   }
 
-  if (moduleNumber === lessons.length) {
-    document.getElementById('nextLesson').style.display = 'none';
+  let completedModules =
+    JSON.parse(
+      localStorage.getItem('vetrium_completed_modules')
+    ) || [];
+
+  if (!completedModules.includes(moduleNumber)) {
+    completedModules.push(moduleNumber);
   }
+
+  localStorage.setItem(
+    'vetrium_completed_modules',
+    JSON.stringify(completedModules)
+  );
+
+  document.getElementById('lessonMessage').textContent =
+    `✅ Módulo ${String(moduleNumber).padStart(2, '0')} concluído com sucesso.`;
+
+  setTimeout(function() {
+    window.location.href = 'aluno.html';
+  }, 900);
+});
+
+document.getElementById('previousLesson')
+.addEventListener('click', function() {
+
+  if (moduleNumber > 1) {
+    window.location.href =
+      `aula.html?modulo=${moduleNumber - 1}`;
+  }
+});
+
+document.getElementById('nextLesson')
+.addEventListener('click', function() {
+
+  if (moduleNumber < lessons.length) {
+    window.location.href =
+      `aula.html?modulo=${moduleNumber + 1}`;
+  }
+});
+
+if (moduleNumber === 1) {
+  document.getElementById('previousLesson').style.display = 'none';
+}
+
+if (moduleNumber === lessons.length) {
+  document.getElementById('nextLesson').style.display = 'none';
+}
+
 </script>
 
 </body>
