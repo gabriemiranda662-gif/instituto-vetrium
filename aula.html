@@ -1189,8 +1189,7 @@ document.getElementById('checkQuiz').addEventListener('click', function() {
 });
 
 document.getElementById('completeLesson')
-.addEventListener('click', function() {
-
+..addEventListener('click', async function() {
   if (!quizApproved) {
     return;
   }
@@ -1208,6 +1207,32 @@ document.getElementById('completeLesson')
     'vetrium_completed_modules',
     JSON.stringify(completedModules)
   );
+
+  const SUPABASE_URL_PROGRESS = 'https://dsmrdpwccbmezzpgwcef.supabase.co';
+const SUPABASE_KEY_PROGRESS = 'sb_publishable_NprxXQvjDX-AEy64Q97hwg_AOL0ZOR4';
+const userId = localStorage.getItem('vetrium_user_id');
+
+const progressResponse = await fetch(
+  `${SUPABASE_URL_PROGRESS}/rest/v1/progress`,
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY_PROGRESS,
+      'Authorization': `Bearer ${accessToken}`,
+      'Prefer': 'resolution=merge-duplicates'
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      module_number: moduleNumber,
+      completed: true
+    })
+  }
+);
+
+if (!progressResponse.ok) {
+  console.error('Erro ao salvar progresso no Supabase.');
+}
 
   document.getElementById('lessonMessage').textContent =
     `✅ Módulo ${String(moduleNumber).padStart(2, '0')} concluído com sucesso.`;
