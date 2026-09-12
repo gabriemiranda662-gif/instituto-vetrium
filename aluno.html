@@ -253,7 +253,7 @@ const SUPABASE_KEY = 'sb_publishable_NprxXQvjDX-AEy64Q97hwg_AOL0ZOR4';
 async function loadProgress() {
   try {
     const response = await fetch(
-      `${SUPABASE_URL}/rest/v1/progress?select=module_number&completed=eq.true`,
+      `${SUPABASE_URL}/rest/v1/progress?select=module_id&completed=eq.true`,
       {
         headers: {
           'apikey': SUPABASE_KEY,
@@ -268,8 +268,7 @@ async function loadProgress() {
 
     const data = await response.json();
 
-    completedModules = data.map(item => item.module_number);
-
+completedModules = data.map(item => item.module_id);
     renderModules();
 
   } catch (error) {
