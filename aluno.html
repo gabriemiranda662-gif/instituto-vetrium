@@ -270,9 +270,10 @@ async function loadProgress() {
 completedModules = data.map(item => item.module_id);
     renderModules();
 
-  } catch (error) {
-    console.error(error);
-  }
+ } catch (error) {
+  console.error(error);
+  completedModules = [];
+  renderModules();
 }
     const progressText = document.getElementById('progressText');
     const progressFill = document.getElementById('progressFill');
