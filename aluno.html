@@ -269,13 +269,13 @@
           <h3>${moduleName}</h3>
 
           <p class="module-status">
-            ${completed ? '✅ Módulo concluído' : '⏳ Aguardando conclusão'}
+            ${completed ? 'Concluído' : locked ? '🔒 Bloqueado' : 'Acessar aula'}
           </p>
 
           <button
             class="module-btn ${completed ? 'completed' : ''}"
-onclick="window.location.href='aula.html?modulo=${moduleNumber}'"          >
-            ${completed ? 'Concluído' : 'Marcar como concluído'}
+onclick="${locked ? "return false;" : `window.location.href='aula.html?modulo=${moduleNumber}'`}"          >
+          ${completed ? 'Concluído' : locked ? '🔒 Bloqueado' : 'Acessar aula'}
           </button>
         `;
 
@@ -305,6 +305,8 @@ onclick="window.location.href='aula.html?modulo=${moduleNumber}'"          >
     function updateProgress() {
       const total = modules.length;
       const completed = completedModules.length;
+      const previousCompleted = moduleNumber === 1 || completedModules.includes(moduleNumber - 1);
+const locked = !previousCompleted;
       const percentage = (completed / total) * 100;
 
       progressText.textContent =
