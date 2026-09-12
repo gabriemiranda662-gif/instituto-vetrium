@@ -274,7 +274,7 @@
 
           <button
             class="module-btn ${completed ? 'completed' : ''}"
-onclick="${moduleNumber === 1 ? "window.location.href='aula01.html'" : `toggleModule(${moduleNumber})`}"          >
+onclick="window.location.href='aula.html?modulo=${moduleNumber}'"          >
             ${completed ? 'Concluído' : 'Marcar como concluído'}
           </button>
         `;
