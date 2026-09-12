@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aula | Instituto Vetrium</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    body {
+      background: #f6f4ee;
+      color: #183d2f;
+    }
+
+    .lesson-page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px 70px;
+    }
+
+    .lesson-header {
+      margin-bottom: 30px;
+    }
+
+    .lesson-header h1 {
+      font-size: 46px;
+      margin-bottom: 10px;
+    }
+
+    .lesson-card {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      margin-bottom: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+    }
+
+    .lesson-card h2 {
+      margin-top: 0;
+    }
+
+    .lesson-card p,
+    .lesson-card li {
+      line-height: 1.7;
+      font-size: 17px;
+    }
+
+    .lesson-card ul {
+      padding-left: 22px;
+    }
+
+    .lesson-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 30px;
+    }
+
+    .btn-lesson {
+      border: none;
+      padding: 13px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-back {
+      background: #183d2f;
+      color: white;
+    }
+
+    .btn-complete {
+      background: #d5aa43;
+      color: #183d2f;
+    }
+
+    .btn-next {
+      background: #ffffff;
+      color: #183d2f;
+      border: 1px solid #d8d0c1;
+    }
+
+    #lessonMessage {
+      margin-top: 15px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="lesson-page">
+
+  <div class="lesson-header">
+    <p class="eyebrow">INSTITUTO VETRIUM</p>
+    <p id="moduleNumber"></p>
+    <h1 id="lessonTitle"></h1>
+    <p>Curso de Auxiliar de Veterinário</p>
+  </div>
+
+  <div id="lessonContent"></div>
+
+  <div class="lesson-actions">
+    <a href="aluno.html" class="btn-lesson btn-back">
+      ← Área do Aluno
+    </a>
+
+    <button class="btn-lesson btn-complete" id="completeLesson">
+      Concluir aula
+    </button>
+
+    <button class="btn-lesson btn-next" id="previousLesson">
+      ← Aula anterior
+    </button>
+
+    <button class="btn-lesson btn-next" id="nextLesson">
+      Próxima aula →
+    </button>
+  </div>
+
+  <p id="lessonMessage"></p>
+
+</main>
+
+<script>
+  const accessToken = localStorage.getItem('vetrium_access_token');
+
+  if (!accessToken) {
+    window.location.href = 'index.html#aluno';
+  }
+
+  const lessons = [
+    {
+      title: 'Introdução à Medicina Veterinária',
+      objective: 'Compreender o papel da Medicina Veterinária e a atuação do auxiliar na rotina profissional.',
+      topics: [
+        'Conceito de Medicina Veterinária',
+        'Principais áreas de atuação',
+        'Função do auxiliar de veterinário',
+        'Bem-estar animal',
+        'Responsabilidade profissional'
+      ]
+    },
+    {
+      title: 'Ética e postura profissional',
+      objective: 'Entender os princípios de ética, responsabilidade, respeito e comportamento profissional.',
+      topics: [
+        'Ética no ambiente veterinário',
+        'Sigilo profissional',
+        'Respeito ao tutor e à equipe',
+        'Limites de atuação do auxiliar',
+        'Postura e apresentação profissional'
+      ]
+    },
+    {
+      title: 'Rotina de uma clínica veterinária',
+      objective: 'Conhecer a organização básica e o funcionamento diário de uma clínica veterinária.',
+      topics: [
+        'Recepção e triagem',
+        'Consultórios',
+        'Internação',
+        'Centro cirúrgico',
+        'Organização de materiais'
+      ]
+    },
+    {
+      title: 'Organização e higienização',
+      objective: 'Aprender princípios básicos de limpeza, organização e biossegurança.',
+      topics: [
+        'Limpeza de superfícies',
+        'Desinfecção',
+        'Organização de materiais',
+        'Descarte de resíduos',
+        'Prevenção de contaminação'
+      ]
+    },
+    {
+      title: 'Contenção de cães e gatos',
+      objective: 'Conhecer técnicas básicas e seguras de contenção física.',
+      topics: [
+        'Avaliação do comportamento',
+        'Contenção de cães',
+        'Contenção de gatos',
+        'Redução de estresse',
+        'Segurança da equipe'
+      ]
+    },
+    {
+      title: 'Anatomia básica dos animais',
+      objective: 'Conhecer estruturas anatômicas importantes de cães e gatos.',
+      topics: [
+        'Sistema esquelético',
+        'Sistema muscular',
+        'Sistema digestório',
+        'Sistema respiratório',
+        'Sistema urinário'
+      ]
+    },
+    {
+      title: 'Fisiologia básica',
+      objective: 'Compreender funções essenciais do organismo animal.',
+      topics: [
+        'Circulação sanguínea',
+        'Respiração',
+        'Digestão',
+        'Termorregulação',
+        'Função renal'
+      ]
+    },
+    {
+      title: 'Sinais vitais',
+      objective: 'Aprender quais são os principais sinais vitais e sua importância clínica.',
+      topics: [
+        'Temperatura',
+        'Frequência cardíaca',
+        'Frequência respiratória',
+        'Mucosas',
+        'Tempo de preenchimento capilar'
+      ]
+    },
+    {
+      title: 'Triagem veterinária',
+      objective: 'Entender os primeiros passos da avaliação de um paciente.',
+      topics: [
+        'Queixa principal',
+        'Estado geral',
+        'Sinais vitais',
+        'Prioridade de atendimento',
+        'Registro das informações'
+      ]
+    },
+    {
+      title: 'Prontuário e ficha clínica',
+      objective: 'Conhecer a importância do registro correto das informações do paciente.',
+      topics: [
+        'Identificação do paciente',
+        'Dados do tutor',
+        'Histórico clínico',
+        'Anotações de evolução',
+        'Organização documental'
+      ]
+    },
+    {
+      title: 'Farmacologia básica',
+      objective: 'Entender conceitos iniciais relacionados ao uso de medicamentos veterinários.',
+      topics: [
+        'Princípio ativo',
+        'Dose',
+        'Intervalo',
+        'Via de administração',
+        'Segurança medicamentosa'
+      ]
+    },
+    {
+      title: 'Vias de administração',
+      objective: 'Conhecer as principais vias de administração utilizadas na rotina veterinária.',
+      topics: [
+        'Via oral',
+        'Via subcutânea',
+        'Via intramuscular',
+        'Via intravenosa',
+        'Via tópica'
+      ]
+    },
+    {
+      title: 'Cálculo e preparo de medicações',
+      objective: 'Compreender princípios básicos de cálculo e preparo seguro de medicamentos.',
+      topics: [
+        'Concentração',
+        'Volume',
+        'Dose prescrita',
+        'Diluição',
+        'Conferência antes da administração'
+      ]
+    },
+    {
+      title: 'Coleta de sangue',
+      objective: 'Conhecer materiais, cuidados e etapas relacionadas à coleta sanguínea.',
+      topics: [
+        'Materiais necessários',
+        'Principais vasos',
+        'Contenção',
+        'Identificação das amostras',
+        'Armazenamento'
+      ]
+    },
+    {
+      title: 'Exames laboratoriais',
+      objective: 'Compreender a finalidade dos principais exames laboratoriais.',
+      topics: [
+        'Hemograma',
+        'Bioquímico',
+        'Urinálise',
+        'Exames parasitológicos',
+        'Cuidados com amostras'
+      ]
+    },
+    {
+      title: 'Curativos e feridas',
+      objective: 'Conhecer os cuidados básicos relacionados à limpeza e proteção de feridas.',
+      topics: [
+        'Avaliação inicial',
+        'Higienização',
+        'Materiais de curativo',
+        'Proteção da área',
+        'Observação da evolução'
+      ]
+    },
+    {
+      title: 'Primeiros socorros',
+      objective: 'Conhecer medidas iniciais de suporte até o atendimento do médico-veterinário.',
+      topics: [
+        'Avaliação rápida',
+        'Controle de hemorragias',
+        'Traumas',
+        'Queimaduras',
+        'Transporte seguro'
+      ]
+    },
+    {
+      title: 'Emergência veterinária',
+      objective: 'Identificar situações que exigem atendimento imediato.',
+      topics: [
+        'Dificuldade respiratória',
+        'Convulsões',
+        'Choque',
+        'Traumas graves',
+        'Alteração de consciência'
+      ]
+    },
+    {
+      title: 'Internação veterinária',
+      objective: 'Conhecer a rotina básica do setor de internação.',
+      topics: [
+        'Organização do leito',
+        'Monitoramento',
+        'Alimentação',
+        'Higiene',
+        'Registro da evolução'
+      ]
+    },
+    {
+      title: 'Fluidoterapia',
+      objective: 'Entender os conceitos básicos relacionados à administração de fluidos.',
+      topics: [
+        'Finalidade da fluidoterapia',
+        'Tipos de soluções',
+        'Acesso venoso',
+        'Monitoramento',
+        'Cuidados com equipo e cateter'
+      ]
+    },
+    {
+      title: 'Nutrição de cães e gatos',
+      objective: 'Conhecer princípios básicos de alimentação e nutrição de pequenos animais.',
+      topics: [
+        'Necessidades nutricionais',
+        'Rações comerciais',
+        'Alimentação natural',
+        'Água',
+        'Condição corporal'
+      ]
+    },
+    {
+      title: 'Vacinação e prevenção',
+      objective: 'Entender a importância da prevenção de doenças.',
+      topics: [
+        'Vacinas',
+        'Protocolos preventivos',
+        'Vermifugação',
+        'Controle de ectoparasitas',
+        'Orientação ao tutor'
+      ]
+    },
+    {
+      title: 'Doenças infectocontagiosas',
+      objective: 'Conhecer conceitos básicos de doenças transmissíveis.',
+      topics: [
+        'Formas de transmissão',
+        'Isolamento',
+        'Higiene',
+        'Uso de EPIs',
+        'Prevenção'
+      ]
+    },
+    {
+      title: 'Parasitologia básica',
+      objective: 'Conhecer os principais parasitas encontrados na rotina veterinária.',
+      topics: [
+        'Pulgas',
+        'Carrapatos',
+        'Vermes intestinais',
+        'Protozoários',
+        'Prevenção'
+      ]
+    },
+    {
+      title: 'Dermatologia veterinária',
+      objective: 'Conhecer alterações dermatológicas comuns em cães e gatos.',
+      topics: [
+        'Coceira',
+        'Queda de pelos',
+        'Feridas',
+        'Ectoparasitas',
+        'Cuidados com a pele'
+      ]
+    },
+    {
+      title: 'Cuidados com pacientes cirúrgicos',
+      objective: 'Entender os cuidados antes e após procedimentos cirúrgicos.',
+      topics: [
+        'Jejum',
+        'Preparação do paciente',
+        'Monitoramento pós-operatório',
+        'Curativos',
+        'Orientações ao tutor'
+      ]
+    },
+    {
+      title: 'Centro cirúrgico',
+      objective: 'Conhecer a organização e rotina de um centro cirúrgico.',
+      topics: [
+        'Paramentação',
+        'Esterilização',
+        'Instrumentais',
+        'Mesa cirúrgica',
+        'Controle de contaminação'
+      ]
+    },
+    {
+      title: 'Anestesia veterinária',
+      objective: 'Conhecer conceitos básicos relacionados à anestesia.',
+      topics: [
+        'Avaliação pré-anestésica',
+        'Monitoramento',
+        'Equipamentos',
+        'Recuperação anestésica',
+        'Segurança'
+      ]
+    },
+    {
+      title: 'Atendimento ao tutor',
+      objective: 'Aprender princípios de comunicação e acolhimento no atendimento.',
+      topics: [
+        'Comunicação clara',
+        'Empatia',
+        'Organização das informações',
+        'Respeito',
+        'Postura profissional'
+      ]
+    },
+    {
+      title: 'Avaliação final do curso',
+      objective: 'Revisar os principais conhecimentos desenvolvidos durante a formação.',
+      topics: [
+        'Revisão geral',
+        'Rotina clínica',
+        'Biossegurança',
+        'Atendimento',
+        'Responsabilidade profissional'
+      ]
+    }
+  ];
+
+  const params = new URLSearchParams(window.location.search);
+  let moduleNumber = parseInt(params.get('modulo')) || 1;
+
+  if (moduleNumber < 1) moduleNumber = 1;
+  if (moduleNumber > lessons.length) moduleNumber = lessons.length;
+
+  const lesson = lessons[moduleNumber - 1];
+
+  document.getElementById('moduleNumber').textContent =
+    `MÓDULO ${String(moduleNumber).padStart(2, '0')}`;
+
+  document.getElementById('lessonTitle').textContent = lesson.title;
+
+  document.title =
+    `Aula ${String(moduleNumber).padStart(2, '0')} | Instituto Vetrium`;
+
+  const content = document.getElementById('lessonContent');
+
+  content.innerHTML = `
+    <section class="lesson-card">
+      <h2>Objetivo da aula</h2>
+      <p>${lesson.objective}</p>
+    </section>
+
+    <section class="lesson-card">
+      <h2>Conteúdo da aula</h2>
+      <p>
+        Nesta aula, você irá estudar os principais conceitos relacionados
+        ao tema <strong>${lesson.title}</strong>.
+      </p>
+
+      <ul>
+        ${lesson.topics.map(topic => `<li>${topic}</li>`).join('')}
+      </ul>
+    </section>
+
+    <section class="lesson-card">
+      <h2>Importância na rotina veterinária</h2>
+      <p>
+        O conhecimento deste conteúdo é importante para que o auxiliar
+        compreenda melhor a rotina de atendimento, trabalhe com segurança,
+        organização e responsabilidade e consiga oferecer suporte adequado
+        à equipe veterinária.
+      </p>
+    </section>
+
+    <section class="lesson-card">
+      <h2>Resumo</h2>
+      <p>
+        Revise os pontos apresentados nesta aula antes de marcar o módulo
+        como concluído. Em caso de dúvida, retorne ao conteúdo e releia
+        os tópicos principais.
+      </p>
+    </section>
+  `;
+
+  document
+    .getElementById('completeLesson')
+    .addEventListener('click', function() {
+
+      let completedModules =
+        JSON.parse(
+          localStorage.getItem('vetrium_completed_modules')
+        ) || [];
+
+      if (!completedModules.includes(moduleNumber)) {
+        completedModules.push(moduleNumber);
+      }
+
+      localStorage.setItem(
+        'vetrium_completed_modules',
+        JSON.stringify(completedModules)
+      );
+
+      document.getElementById('lessonMessage').textContent =
+        `✅ Aula ${String(moduleNumber).padStart(2, '0')} concluída com sucesso.`;
+
+      setTimeout(function() {
+        window.location.href = 'aluno.html';
+      }, 800);
+    });
+
+  document
+    .getElementById('previousLesson')
+    .addEventListener('click', function() {
+
+      if (moduleNumber > 1) {
+        window.location.href =
+          `aula.html?modulo=${moduleNumber - 1}`;
+      }
+    });
+
+  document
+    .getElementById('nextLesson')
+    .addEventListener('click', function() {
+
+      if (moduleNumber < lessons.length) {
+        window.location.href =
+          `aula.html?modulo=${moduleNumber + 1}`;
+      }
+    });
+
+  if (moduleNumber === 1) {
+    document.getElementById('previousLesson').style.display = 'none';
+  }
+
+  if (moduleNumber === lessons.length) {
+    document.getElementById('nextLesson').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
