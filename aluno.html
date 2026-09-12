@@ -243,10 +243,39 @@
       'Avaliação final do curso'
     ];
 
-    let completedModules =
+    let completedModules = [];
       JSON.parse(localStorage.getItem('vetrium_completed_modules')) || [];
 
     const modulesGrid = document.getElementById('modulesGrid');
+    const SUPABASE_URL = 'https://dsmrdpwccbmezzpgwcef.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_NprxXQvjDX-AEy64Q97hwg_AOL0ZOR4';
+
+async function loadProgress() {
+  try {
+    const response = await fetch(
+      `${SUPABASE_URL}/rest/v1/progress?select=module_number&completed=eq.true`,
+      {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${accessToken}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Não foi possível carregar o progresso.');
+    }
+
+    const data = await response.json();
+
+    completedModules = data.map(item => item.module_number);
+
+    renderModules();
+
+  } catch (error) {
+    console.error(error);
+  }
+}
     const progressText = document.getElementById('progressText');
     const progressFill = document.getElementById('progressFill');
     const certificateBtn = document.getElementById('certificateBtn');
@@ -332,7 +361,7 @@ const locked = !previousCompleted;
       window.location.href = 'index.html';
     });
 
-    renderModules();
+loadProgress();
   </script>
 
 </body>
