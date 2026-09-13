@@ -270,7 +270,7 @@ async function loadProgress() {
 completedModules = data.map(item => item.module_id);
     renderModules();
 
- } catch (error) {
+} catch (error) {
   console.error(error);
   completedModules = [];
   renderModules();
